@@ -1,0 +1,44 @@
+{
+    "name": "@marcosjgb/envguardian",
+    "version": "0.1.0",
+    "description": "Catch missing and inconsistent environment variables before deploy.",
+    "license": "MIT",
+    "type": "module",
+    "main": "dist/index.js",
+    "bin": {
+        "envguardian": "dist/index.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "tsx src/cli/index.ts",
+        "build": "tsup src/cli/index.ts --format esm --dts --clean",
+        "start": "node dist/index.js",
+        "test": "vitest run"
+    },
+    "keywords": [
+        "env",
+        "dotenv",
+        "cli",
+        "developer-tools",
+        "typescript",
+        "ci"
+    ],
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "chalk": "^5.3.0",
+        "commander": "^12.1.0",
+        "dotenv": "^16.4.5",
+        "fast-glob": "^3.3.2"
+    },
+    "devDependencies": {
+        "@types/node": "^22.10.2",
+        "tsup": "^8.5.1",
+        "tsx": "^4.19.2",
+        "typescript": "^5.7.2",
+        "vitest": "^2.1.8"
+    }
+}

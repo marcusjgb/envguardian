@@ -1,0 +1,68 @@
+# ======================
+# Node modules
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ======================
+# Build output
+# ======================
+dist/
+build/
+coverage/
+
+# ======================
+# TypeScript
+# ======================
+*.tsbuildinfo
+
+# ======================
+# Environment variables
+# ======================
+.env
+.env.local
+.env.development
+.env.production
+
+# ⚠️ Este sí se puede subir (ejemplo)
+!.env.example
+
+# ======================
+# Logs
+# ======================
+logs/
+*.log
+
+# ======================
+# OS files
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# Editor / IDE
+# ======================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ======================
+# npm config (opcional)
+# ======================
+.npmrc
+
+# ======================
+# Tests / temp
+# ======================
+tmp/
+temp/
+.cache/
+
+# ======================
+# Misc
+# ======================
+*.tgz
