@@ -31,9 +31,17 @@ export async function runCheckCommand(
         envExampleVars: envData.envExample,
     });
 
-    const hasProblems =
-        comparison.missingInEnv.length > 0 ||
-        comparison.missingInEnvExample.length > 0;
+    const missingCount =
+        comparison.missingInEnv.length +
+        comparison.missingInEnvExample.length;
+
+    const unusedCount =
+        comparison.unusedInEnv.length +
+        comparison.unusedInEnvExample.length;
+
+    const totalIssues = missingCount + unusedCount;
+
+    const hasProblems = missingCount > 0;
 
     if (json) {
         printJsonReport({
@@ -60,11 +68,25 @@ export async function runCheckCommand(
         comparison,
     });
 
-    console.log(
-        hasProblems
-            ? chalk.red.bold("FAIL: EnvGuardian found issues.")
-            : chalk.green.bold("PASS: EnvGuardian found no blocking issues."),
-    );
+    console.log("");
+
+    if (totalIssues === 0) {
+        console.log(chalk.green.bold("✔ No issues found\n"));
+    } else {
+        console.log(chalk.red.bold(`✖ Found ${totalIssues} issues`));
+
+        if (missingCount > 0) {
+            console.log(chalk.yellow(`  - Missing variables: ${missingCount}`));
+        }
+
+        if (unusedCount > 0) {
+            console.log(chalk.blue(`  - Unused variables: ${unusedCount}`));
+        }
+
+        console.log("");
+
+        console.log(chalk.red.bold("✖ EnvGuardian check failed\n"));
+    }
 
     return hasProblems ? 1 : 0;
 }
