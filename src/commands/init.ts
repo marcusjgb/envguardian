@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import chalk from "chalk";
 
+
 const CONFIG_FILE = ".envguardian.json";
 const ENV_FILE = ".env";
 const ENV_EXAMPLE_FILE = ".env.example";

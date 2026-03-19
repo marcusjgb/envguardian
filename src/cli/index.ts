@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { runCheckCommand } from "../commands/check.js";
 import { initCommand } from "../commands/init.js";
+import { syncCommand } from "../commands/sync.js";
 
 const program = new Command();
 
@@ -36,6 +37,19 @@ program
             await initCommand();
         } catch (error) {
             console.error("Unexpected error while running EnvGuardian init.");
+            console.error(error);
+            process.exit(1);
+        }
+    });
+
+program
+    .command("sync")
+    .description("Sync .env variables into .env.example")
+    .action(async () => {
+        try {
+            await syncCommand();
+        } catch (error) {
+            console.error("Unexpected error while running EnvGuardian sync.");
             console.error(error);
             process.exit(1);
         }
