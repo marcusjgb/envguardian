@@ -17,6 +17,9 @@ program
     .option("--cwd <path>", "Project directory to scan", process.cwd())
     .option("--debug", "Enable debug logs", false)
     .option("--json", "Print the report as JSON", false)
+    .option("--fix", "Automatically fix missing variables", false)
+    .option("--quiet", "Minimal output", false)
+    .option("--only-missing", "Show only missing variables", false)
     .action(async (options) => {
         try {
             const exitCode = await runCheckCommand(options);
