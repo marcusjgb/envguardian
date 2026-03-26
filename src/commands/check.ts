@@ -16,6 +16,25 @@ export interface RunCheckCommandOptions {
     onlyMissing?: boolean;
 }
 
+interface EnvGuardianConfig {
+    ignore?: string[];
+}
+
+function loadConfig(projectRoot: string): EnvGuardianConfig {
+    try {
+        const configPath = path.join(projectRoot, ".envguardian.json");
+
+        if (!fs.existsSync(configPath)) {
+            return {};
+        }
+
+        const raw = fs.readFileSync(configPath, "utf-8");
+        return JSON.parse(raw) as EnvGuardianConfig;
+    } catch {
+        return {};
+    }
+}
+
 export async function runCheckCommand(
     options: RunCheckCommandOptions = {},
 ): Promise<number> {
@@ -26,19 +45,27 @@ export async function runCheckCommand(
     const quiet = options.quiet ?? false;
     const onlyMissing = options.onlyMissing ?? false;
 
+    const config = loadConfig(projectRoot);
+    const ignore = config.ignore ?? [];
+
     const usedVars = await scanProjectForEnvVars(projectRoot, { debug });
 
     const envData = await loadEnvFiles(projectRoot, [".env", ".env.example"], {
         debug,
     });
 
+    const filteredUsedVars = usedVars.filter((v) => !ignore.includes(v));
+    const filteredEnvVars = envData.env.filter((v) => !ignore.includes(v));
+    const filteredEnvExampleVars = envData.envExample.filter(
+        (v) => !ignore.includes(v),
+    );
+
     const comparison = compareEnvSets({
-        usedVars,
-        envVars: envData.env,
-        envExampleVars: envData.envExample,
+        usedVars: filteredUsedVars,
+        envVars: filteredEnvVars,
+        envExampleVars: filteredEnvExampleVars,
     });
 
-    // --- FIX ---
     if (fix && comparison.missingInEnvExample.length > 0) {
         const envExamplePath = path.join(projectRoot, ".env.example");
 
@@ -73,14 +100,15 @@ export async function runCheckCommand(
         }
     }
 
+    const finalEnvExampleVars = fix
+        ? [...filteredEnvExampleVars, ...comparison.missingInEnvExample]
+        : filteredEnvExampleVars;
+
     const finalComparison = fix
         ? compareEnvSets({
-            usedVars,
-            envVars: envData.env,
-            envExampleVars: [
-                ...envData.envExample,
-                ...comparison.missingInEnvExample,
-            ],
+            usedVars: filteredUsedVars,
+            envVars: filteredEnvVars,
+            envExampleVars: finalEnvExampleVars,
         })
         : comparison;
 
@@ -98,11 +126,9 @@ export async function runCheckCommand(
     if (json) {
         printJsonReport({
             projectRoot: path.basename(projectRoot),
-            usedVars,
-            envVars: envData.env,
-            envExampleVars: fix
-                ? [...envData.envExample, ...comparison.missingInEnvExample]
-                : envData.envExample,
+            usedVars: filteredUsedVars,
+            envVars: filteredEnvVars,
+            envExampleVars: finalEnvExampleVars,
             comparison: finalComparison,
             hasBlockingIssues: hasProblems,
         });
@@ -110,7 +136,6 @@ export async function runCheckCommand(
         return hasProblems ? 1 : 0;
     }
 
-    // --- QUIET ---
     if (quiet) {
         if (totalIssues === 0) {
             console.log(chalk.green("✔ EnvGuardian check passed"));
@@ -125,7 +150,14 @@ export async function runCheckCommand(
     console.log(chalk.gray(`Scanning project: ${projectRoot}`));
     console.log("");
 
-    // --- ONLY MISSING ---
+    if (ignore.length > 0) {
+        console.log(chalk.blue(`ℹ Ignoring ${ignore.length} variable(s)`));
+        ignore.forEach((key) => {
+            console.log(chalk.gray(`  - ${key}`));
+        });
+        console.log("");
+    }
+
     if (onlyMissing) {
         if (missingCount === 0) {
             console.log(chalk.green.bold("✔ No missing variables\n"));
@@ -152,14 +184,11 @@ export async function runCheckCommand(
         return hasProblems ? 1 : 0;
     }
 
-    // --- DEFAULT REPORT ---
     printConsoleReport({
         projectRoot: path.basename(projectRoot),
-        usedVars,
-        envVars: envData.env,
-        envExampleVars: fix
-            ? [...envData.envExample, ...comparison.missingInEnvExample]
-            : envData.envExample,
+        usedVars: filteredUsedVars,
+        envVars: filteredEnvVars,
+        envExampleVars: finalEnvExampleVars,
         comparison: finalComparison,
     });
 
