@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import chalk from "chalk";
 import dotenv from "dotenv";
+import { sortEnvContent } from "../utils/sort-env.js";
 
 const ENV_FILE = ".env";
 const ENV_EXAMPLE_FILE = ".env.example";
@@ -54,13 +55,23 @@ export async function syncCommand() {
 
     const missingVars = envVars.filter((key) => !envExampleVars.includes(key));
 
+    // 🔥 CASO: NO HAY VARIABLES FALTANTES
     if (missingVars.length === 0) {
+        const sortedContent = sortEnvContent(envExampleContent);
+
+        if (sortedContent !== envExampleContent) {
+            fs.writeFileSync(envExamplePath, sortedContent);
+            console.log(chalk.gray("ℹ .env.example sorted"));
+        }
+
         console.log(chalk.green("\n✔ .env.example is already in sync\n"));
         console.log(chalk.green("\n🎉 Env files synchronized successfully!\n"));
         return;
     }
 
+
     const linesToAppend = missingVars.map((key) => `${key}=`).join("\n");
+
     const needsNewLine =
         envExampleContent.length > 0 && !envExampleContent.endsWith("\n");
 
@@ -70,13 +81,15 @@ export async function syncCommand() {
         linesToAppend +
         "\n";
 
-    fs.writeFileSync(envExamplePath, nextContent);
+    const sortedContent = sortEnvContent(nextContent);
+    fs.writeFileSync(envExamplePath, sortedContent);
 
     success(
         `Added ${missingVars.length} missing variable${
             missingVars.length === 1 ? "" : "s"
         } to .env.example`,
     );
+
     list(missingVars);
 
     console.log(chalk.green("\n🎉 Env files synchronized successfully!\n"));
