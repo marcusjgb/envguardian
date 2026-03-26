@@ -6,6 +6,7 @@ import { loadEnvFiles } from "../core/env/load-env-files.js";
 import { compareEnvSets } from "../core/env/compare-envs.js";
 import { printConsoleReport } from "../core/report/console-report.js";
 import { printJsonReport } from "../core/report/json-report.js";
+import { sortEnvContent } from "../utils/sort-env.js";
 
 export interface RunCheckCommandOptions {
     cwd?: string;
@@ -83,8 +84,8 @@ export async function runCheckCommand(
             (needsNewLine ? "\n" : "") +
             linesToAppend +
             "\n";
-
-        fs.writeFileSync(envExamplePath, nextContent);
+        const sortedContent = sortEnvContent(nextContent);
+        fs.writeFileSync(envExamplePath, sortedContent);
 
         if (!quiet) {
             console.log(
