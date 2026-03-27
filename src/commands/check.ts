@@ -15,6 +15,7 @@ export interface RunCheckCommandOptions {
     fix?: boolean;
     quiet?: boolean;
     onlyMissing?: boolean;
+    ci?: boolean;
 }
 
 interface EnvGuardianConfig {
@@ -45,6 +46,7 @@ export async function runCheckCommand(
     const fix = options.fix ?? false;
     const quiet = options.quiet ?? false;
     const onlyMissing = options.onlyMissing ?? false;
+    const ci = options.ci ?? false;
 
     const config = loadConfig(projectRoot);
     const ignore = config.ignore ?? [];
@@ -84,6 +86,7 @@ export async function runCheckCommand(
             (needsNewLine ? "\n" : "") +
             linesToAppend +
             "\n";
+
         const sortedContent = sortEnvContent(nextContent);
         fs.writeFileSync(envExamplePath, sortedContent);
 
@@ -113,13 +116,21 @@ export async function runCheckCommand(
         })
         : comparison;
 
+    const displayComparison = ci
+        ? {
+            ...finalComparison,
+            unusedInEnv: [],
+            unusedInEnvExample: [],
+        }
+        : finalComparison;
+
     const missingCount =
-        finalComparison.missingInEnv.length +
-        finalComparison.missingInEnvExample.length;
+        displayComparison.missingInEnv.length +
+        displayComparison.missingInEnvExample.length;
 
     const unusedCount =
-        finalComparison.unusedInEnv.length +
-        finalComparison.unusedInEnvExample.length;
+        displayComparison.unusedInEnv.length +
+        displayComparison.unusedInEnvExample.length;
 
     const totalIssues = missingCount + unusedCount;
     const hasProblems = missingCount > 0;
@@ -130,7 +141,7 @@ export async function runCheckCommand(
             usedVars: filteredUsedVars,
             envVars: filteredEnvVars,
             envExampleVars: finalEnvExampleVars,
-            comparison: finalComparison,
+            comparison: displayComparison,
             hasBlockingIssues: hasProblems,
         });
 
@@ -138,10 +149,10 @@ export async function runCheckCommand(
     }
 
     if (quiet) {
-        if (totalIssues === 0) {
-            console.log(chalk.green("✔ EnvGuardian check passed"));
-        } else {
+        if (hasProblems) {
             console.log(chalk.red("✖ EnvGuardian check failed"));
+        } else {
+            console.log(chalk.green("✔ EnvGuardian check passed"));
         }
 
         return hasProblems ? 1 : 0;
@@ -159,22 +170,60 @@ export async function runCheckCommand(
         console.log("");
     }
 
+    if (ci) {
+        console.log(chalk.blue("ℹ CI mode enabled"));
+        console.log("");
+
+        if (missingCount === 0) {
+            console.log(chalk.green.bold("✔ No missing variables\n"));
+        } else {
+            console.log(chalk.red.bold("✖ Missing variables detected"));
+
+            if (displayComparison.missingInEnv.length > 0) {
+                console.log(chalk.yellow("\nMissing in .env"));
+                displayComparison.missingInEnv.forEach((key) => {
+                    console.log(chalk.gray(`  - ${key}`));
+                });
+            }
+
+            if (displayComparison.missingInEnvExample.length > 0) {
+                console.log(chalk.yellow("\nMissing in .env.example"));
+                displayComparison.missingInEnvExample.forEach((key) => {
+                    console.log(chalk.gray(`  - ${key}`));
+                });
+            }
+
+            console.log("");
+        }
+
+        if (missingCount === 0) {
+            console.log(chalk.green.bold("✔ EnvGuardian check passed\n"));
+        } else {
+            console.log(chalk.red.bold(`✖ Found ${missingCount} issues`));
+            console.log(chalk.yellow(`  - Missing variables: ${missingCount}`));
+            console.log("");
+            console.log(chalk.red.bold("✖ EnvGuardian check failed\n"));
+        }
+
+        return hasProblems ? 1 : 0;
+    }
+
     if (onlyMissing) {
         if (missingCount === 0) {
             console.log(chalk.green.bold("✔ No missing variables\n"));
         } else {
             console.log(chalk.red.bold("✖ Missing variables detected"));
 
-            if (finalComparison.missingInEnv.length > 0) {
+            if (displayComparison.missingInEnv.length > 0) {
                 console.log(chalk.yellow("\nMissing in .env"));
-                finalComparison.missingInEnv.forEach((key) => {
+                displayComparison.missingInEnv.forEach((key) => {
                     console.log(chalk.gray(`  - ${key}`));
                 });
             }
 
-            if (finalComparison.missingInEnvExample.length > 0) {
+            if (displayComparison.missingInEnvExample.length > 0) {
                 console.log(chalk.yellow("\nMissing in .env.example"));
-                finalComparison.missingInEnvExample.forEach((key) => {
+                displayComparison.missingInEnvExample.forEach((key) => {
                     console.log(chalk.gray(`  - ${key}`));
                 });
             }
@@ -190,7 +239,7 @@ export async function runCheckCommand(
         usedVars: filteredUsedVars,
         envVars: filteredEnvVars,
         envExampleVars: finalEnvExampleVars,
-        comparison: finalComparison,
+        comparison: displayComparison,
     });
 
     console.log("");
@@ -204,7 +253,7 @@ export async function runCheckCommand(
             console.log(chalk.yellow(`  - Missing variables: ${missingCount}`));
         }
 
-        if (!onlyMissing && unusedCount > 0) {
+        if (unusedCount > 0) {
             console.log(chalk.blue(`  - Unused variables: ${unusedCount}`));
         }
 

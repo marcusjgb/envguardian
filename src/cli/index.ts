@@ -10,7 +10,6 @@ program
     .description("Catch missing and inconsistent environment variables before deploy.")
     .version("0.1.0-alpha");
 
-// CHECK
 program
     .command("check")
     .description("Scan the project and compare used env vars against .env files")
@@ -20,6 +19,7 @@ program
     .option("--fix", "Automatically fix missing variables", false)
     .option("--quiet", "Minimal output", false)
     .option("--only-missing", "Show only missing variables", false)
+    .option("--ci", "CI mode: fail only on missing variables", false)
     .action(async (options) => {
         try {
             const exitCode = await runCheckCommand(options);
@@ -31,7 +31,6 @@ program
         }
     });
 
-// INIT 👇
 program
     .command("init")
     .description("Initialize EnvGuardian configuration")
