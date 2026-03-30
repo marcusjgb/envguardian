@@ -27,4 +27,4 @@ jobs:
           EOF
 
       - name: Run EnvGuardian
-        run: npx @marcosjgb/envguardian@0.1.1 check --ci --only-missing
+        run: npx @marcosjgb/envguardian@0.1.3 check --ci --only-missing
