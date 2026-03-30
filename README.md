@@ -9,10 +9,14 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/marcosjgb/envguardian/actions/workflows/envguardian.yml">
+    <img alt="CI" src="https://github.com/marcosjgb/envguardian/actions/workflows/envguardian.yml/badge.svg" />
+  </a>
   <img alt="npm version" src="https://img.shields.io/npm/v/@marcosjgb/envguardian" />
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue" />
   <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" />
   <img alt="status" src="https://img.shields.io/badge/status-active-success" />
+  
 </p>
 
 > ⚠️ Prevent broken deployments caused by missing environment variables.
