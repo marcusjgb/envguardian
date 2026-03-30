@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/marcosjgb/envguardian/actions/workflows/envguardian.yml">
-    <img alt="CI" src="https://github.com/marcosjgb/envguardian/actions/workflows/envguardian.yml/badge.svg" />
+  <a href="https://github.com/marcusjgb/envguardian/actions/workflows/envguardian.yml">
+    <img alt="CI" src="https://github.com/marcusjgb/envguardian/actions/workflows/envguardian.yml/badge.svg?branch=main" />
   </a>
   <img alt="npm version" src="https://img.shields.io/npm/v/@marcosjgb/envguardian" />
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue" />
