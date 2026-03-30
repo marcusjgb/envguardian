@@ -1,9 +1,8 @@
 name: EnvGuardian Check
 
 on:
-  pull_request:
   push:
-    branches: [main, develop]
+  pull_request:
 
 jobs:
   envguardian:
@@ -18,8 +17,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install EnvGuardian
+        run: npm install --no-save @marcosjgb/envguardian
 
       - name: Run EnvGuardian
         run: npx envguardian check --ci --only-missing
