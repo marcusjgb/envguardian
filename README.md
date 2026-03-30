@@ -1,4 +1,16 @@
+Perfecto Marcos — te lo dejo **completo, actualizado y listo para copiar/pegar**, con:
 
+* CI real (`--ci --only-missing`)
+* workflow actualizado
+* badge corregido (ojo: estaba con `marcusjgb`, lo arreglé)
+* comandos actuales (sin “planned” desactualizado)
+* posicionamiento más pro
+
+---
+
+## 🚀 README FINAL (COPIAR Y PEGAR)
+
+````md
 <p align="center">
   <img src="./assets/logo-light.png#gh-light-mode-only" alt="EnvGuardian logo" width="520" />
   <img src="./assets/logo-dark.png#gh-dark-mode-only" alt="EnvGuardian logo" width="520" />
@@ -9,85 +21,62 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/marcusjgb/envguardian/actions/workflows/envguardian.yml">
-    <img alt="CI" src="https://github.com/marcusjgb/envguardian/actions/workflows/envguardian.yml/badge.svg?branch=main" />
+  <a href="https://github.com/marcosjgb/envguardian/actions/workflows/envguardian.yml">
+    <img alt="CI" src="https://github.com/marcosjgb/envguardian/actions/workflows/envguardian.yml/badge.svg?branch=main" />
   </a>
   <img alt="npm version" src="https://img.shields.io/npm/v/@marcosjgb/envguardian" />
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue" />
   <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" />
   <img alt="status" src="https://img.shields.io/badge/status-active-success" />
-  
 </p>
 
 > ⚠️ Prevent broken deployments caused by missing environment variables.
 
 ---
 
-# Demo
+# 🚀 Demo
 
 EnvGuardian scans your project and detects missing environment variables before deployment.
 
 ![EnvGuardian Demo](./assets/demo.gif)
 
-Example command:
+Example:
 
 ```bash
 npx @marcosjgb/envguardian check --cwd tests/fixtures/sample-project
-```
-
-Example output:
-
-```text
-EnvGuardian
-Scanning project: tests/fixtures/sample-project
-
-EnvGuardian Report
-
-Project: sample-project
-Variables detected in code: 3
-Variables defined in .env: 3
-Variables defined in .env.example: 3
-
-✖ Missing in .env
-  - VITE_API_URL
-
-✖ Missing in .env.example
-  - JWT_SECRET
-
-ℹ Unused in .env
-  - OLD_TOKEN
-
-ℹ Unused in .env.example
-  - UNUSED_EXAMPLE
-
-FAIL: EnvGuardian found issues.
-```
+````
 
 ---
 
-# What is EnvGuardian?
+# 🧠 What is EnvGuardian?
 
-EnvGuardian scans your project, detects environment variables used in the codebase, and compares them with your `.env` files to identify missing, unused, and inconsistent variables.
+EnvGuardian scans your codebase, detects environment variables used in your project, and compares them with your `.env` files.
 
-The goal is simple: catch env problems before they break local development, CI, staging, or production.
+It helps you identify:
 
----
+* missing variables
+* unused variables
+* inconsistencies between `.env` and `.env.example`
 
-# Features
-
-- Detect environment variables used in your code
-- Compare `.env`, `.env.example`, and other env files
-- Identify missing variables
-- Detect unused variables
-- Work in CI pipelines
-- Stay stack-agnostic
-- Help prevent “works on my machine” env issues
+👉 The goal is simple: **catch env issues before they break your app**.
 
 ---
 
-# Quick Start
+# ✨ Features
 
-Run EnvGuardian without installing anything:
+* Detect environment variables used in code
+* Compare `.env` and `.env.example`
+* Identify missing variables
+* Detect unused variables
+* CI-ready (`--ci` support)
+* Stack agnostic
+* Zero config required
+
+---
+
+# ⚡ Quick Start
+
+Run without installing:
 
 ```bash
 npx @marcosjgb/envguardian check
@@ -95,15 +84,15 @@ npx @marcosjgb/envguardian check
 
 ---
 
-# Installation
+# 📦 Installation
 
-Install globally:
+Global install:
 
 ```bash
 npm install -g @marcosjgb/envguardian
 ```
 
-Then run:
+Then:
 
 ```bash
 envguardian check
@@ -111,9 +100,79 @@ envguardian check
 
 ---
 
-# Supported Patterns
+# 🧪 CLI Usage
 
-EnvGuardian detects common patterns used to access environment variables.
+```bash
+envguardian check
+envguardian check --only-missing
+envguardian check --ci
+envguardian check --ci --only-missing
+envguardian sync
+```
+
+---
+
+# 🔍 Example Output
+
+```text
+EnvGuardian
+Scanning project: .
+
+✖ Missing variables detected
+
+Missing in .env
+  - DATABASE_URL
+  - JWT_SECRET
+
+✖ EnvGuardian check failed
+```
+
+---
+
+# 🔧 CI Integration
+
+EnvGuardian can run in CI pipelines and fail builds when variables are missing.
+
+## Example: GitHub Actions
+
+```yaml
+name: EnvGuardian Check
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  envguardian:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create .env for CI
+        run: |
+          cat > .env <<EOF
+          DATABASE_URL=dummy_database_url
+          JWT_SECRET=dummy_jwt_secret
+          VITE_API_URL=http://localhost:3000
+          EOF
+
+      - name: Run EnvGuardian
+        run: npx @marcosjgb/envguardian check --ci --only-missing
+```
+
+👉 If variables are missing, the pipeline fails.
+
+---
+
+# 🌍 Supported Patterns
+
+EnvGuardian detects environment variables in multiple ecosystems.
 
 ### Node.js
 
@@ -142,51 +201,23 @@ ENV["VARIABLE_NAME"]
 
 ---
 
-# Example Use Case
+# 🧠 Example Use Case
 
-You deploy a project and everything works locally, but production crashes because a required variable is missing.
+You deploy your app.
 
-EnvGuardian helps detect the issue before deploy:
+Everything works locally…
 
-```bash
-envguardian check
-```
+💥 Production crashes because a variable is missing.
 
-Result:
-
-```text
-Missing variables:
-DATABASE_URL
-JWT_SECRET
-```
-
----
-
-# Planned Commands
+EnvGuardian catches it before deploy:
 
 ```bash
 envguardian check
-envguardian doctor
-envguardian sync
-envguardian init
 ```
 
 ---
 
-# CI Integration
-
-Example GitHub Action:
-
-```yaml
-- name: Check env variables
-  run: npx @marcosjgb/envguardian check
-```
-
-If variables are missing, the build should fail.
-
----
-
-# Project Structure
+# 📁 Project Structure
 
 ```text
 envguardian/
@@ -206,24 +237,23 @@ envguardian/
 
 ---
 
-# Roadmap
+# 🛣️ Roadmap
 
-See [ROADMAP.md](./ROADMAP.md).
-
----
-
-# Contributing
-
-Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening an issue or pull request.
+See [ROADMAP.md](./ROADMAP.md)
 
 ---
 
-# Code of Conduct
+# 🤝 Contributing
 
-Please read [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
+Contributions are welcome.
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ---
 
-# License
+# 📜 License
 
 MIT
+
+```
+
+
