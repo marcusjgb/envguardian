@@ -25,7 +25,7 @@ jobs:
         run: npm run build
 
       - name: List dist
-        run: ls -R dist || true
+        run: ls -R dist
 
       - name: Run EnvGuardian
-        run: node dist/cli/index.js check --ci --only-missing
+        run: node dist/index.js check --ci --only-missing
