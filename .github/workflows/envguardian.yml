@@ -24,8 +24,5 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: List dist
-        run: ls -R dist
-
       - name: Run EnvGuardian
         run: node dist/index.js check --ci --only-missing
