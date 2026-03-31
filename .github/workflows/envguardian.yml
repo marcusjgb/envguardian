@@ -13,11 +13,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Create .env for CI
         run: |
           cat > .env <<EOF
@@ -26,5 +21,5 @@ jobs:
           VITE_API_URL=http://localhost:3000
           EOF
 
-      - name: Run EnvGuardian
-        run: npx @marcosjgb/envguardian@0.1.3 check --ci --only-missing
+      - name: Run EnvGuardian Action
+        uses: marcusjgb/envguardian-action@v1

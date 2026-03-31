@@ -1,6 +1,6 @@
 {
     "name": "@marcosjgb/envguardian",
-    "version": "0.1.0",
+    "version": "0.1.3",
     "description": "Catch missing and inconsistent environment variables before deploy.",
     "license": "MIT",
     "type": "module",
@@ -13,7 +13,7 @@
     ],
     "scripts": {
         "dev": "tsx src/cli/index.ts",
-        "build": "tsup src/cli/index.ts --format esm --dts --clean",
+        "build": "tsup",
         "start": "node dist/index.js",
         "test": "vitest run"
     },
