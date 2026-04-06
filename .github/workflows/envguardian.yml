@@ -22,4 +22,4 @@ jobs:
           EOF
 
       - name: Run EnvGuardian Action
-        run: node dist/index.js check --ci --only-missing
+        run: node dist/cli/index.js check --ci --only-missing
