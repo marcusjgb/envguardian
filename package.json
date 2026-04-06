@@ -1,6 +1,6 @@
 {
     "name": "@marcosjgb/envguardian",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "Catch missing and inconsistent environment variables before deploy.",
     "license": "MIT",
     "type": "module",
