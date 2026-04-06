@@ -24,11 +24,6 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Show dist structure
-        run: |
-          echo "=== DIST ==="
-          find dist -maxdepth 4 -type f
-
       - name: Create .env for CI
         run: |
           cat > .env <<EOF
@@ -38,4 +33,4 @@ jobs:
           EOF
 
       - name: Run EnvGuardian
-        run: node RUTA_CORRECTA_AQUI check --ci --only-missing
+        run: node dist/index.js check --ci --only-missing
