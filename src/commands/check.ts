@@ -22,6 +22,8 @@ interface EnvGuardianConfig {
     ignore?: string[];
 }
 
+type AnnotationLevel = "error" | "warning" | "notice";
+
 function loadConfig(projectRoot: string): EnvGuardianConfig {
     try {
         const configPath = path.join(projectRoot, ".envguardian.json");
@@ -37,6 +39,113 @@ function loadConfig(projectRoot: string): EnvGuardianConfig {
     }
 }
 
+function escapeGitHubAnnotationMessage(message: string): string {
+    return message
+        .replace(/%/g, "%25")
+        .replace(/\r/g, "%0D")
+        .replace(/\n/g, "%0A");
+}
+
+function emitGitHubAnnotation(params: {
+    level: AnnotationLevel;
+    file: string;
+    line?: number;
+    col?: number;
+    title?: string;
+    message: string;
+}): void {
+    const parts: string[] = [];
+
+    if (params.file) {
+        parts.push(`file=${params.file}`);
+    }
+
+    if (params.line) {
+        parts.push(`line=${params.line}`);
+    }
+
+    if (params.col) {
+        parts.push(`col=${params.col}`);
+    }
+
+    if (params.title) {
+        parts.push(`title=${escapeGitHubAnnotationMessage(params.title)}`);
+    }
+
+    const metadata = parts.join(",");
+    const message = escapeGitHubAnnotationMessage(params.message);
+
+    process.stdout.write(`::${params.level} ${metadata}::${message}\n`);
+}
+
+function emitGitHubAnnotations(options: {
+    missingInEnv: string[];
+    missingInEnvExample: string[];
+    unusedInEnv: string[];
+    envPath?: string;
+    envExamplePath?: string;
+}): void {
+    const envPath = options.envPath ?? ".env";
+    const envExamplePath = options.envExamplePath ?? ".env.example";
+    const maxErrors = 10;
+    const maxWarnings = 10;
+
+    const errorAnnotations = [
+        ...options.missingInEnv.map((variable) => ({
+            file: envPath,
+            message: `Missing variable: ${variable}`,
+        })),
+        ...options.missingInEnvExample.map((variable) => ({
+            file: envExamplePath,
+            message: `Missing variable: ${variable}`,
+        })),
+    ].slice(0, maxErrors);
+
+    const warningAnnotations = options.unusedInEnv
+        .map((variable) => ({
+            file: envPath,
+            message: `Unused variable: ${variable}`,
+        }))
+        .slice(0, maxWarnings);
+
+    for (const annotation of errorAnnotations) {
+        emitGitHubAnnotation({
+            level: "error",
+            file: annotation.file,
+            line: 1,
+            col: 1,
+            title: "EnvGuardian missing variable",
+            message: annotation.message,
+        });
+    }
+
+    for (const annotation of warningAnnotations) {
+        emitGitHubAnnotation({
+            level: "warning",
+            file: annotation.file,
+            line: 1,
+            col: 1,
+            title: "EnvGuardian unused variable",
+            message: annotation.message,
+        });
+    }
+
+    const totalErrors =
+        options.missingInEnv.length + options.missingInEnvExample.length;
+
+    if (totalErrors > maxErrors) {
+        process.stdout.write(
+            `EnvGuardian: ${totalErrors - maxErrors} more missing variable(s) were not annotated due to GitHub step limits.\n`,
+        );
+    }
+
+    if (options.unusedInEnv.length > maxWarnings) {
+        process.stdout.write(
+            `EnvGuardian: ${options.unusedInEnv.length - maxWarnings} more unused variable(s) were not annotated due to GitHub step limits.\n`,
+        );
+    }
+}
+
 export async function runCheckCommand(
     options: RunCheckCommandOptions = {},
 ): Promise<number> {
@@ -47,6 +156,7 @@ export async function runCheckCommand(
     const quiet = options.quiet ?? false;
     const onlyMissing = options.onlyMissing ?? false;
     const ci = options.ci ?? false;
+    const isGitHubActions = process.env.GITHUB_ACTIONS === "true";
 
     const config = loadConfig(projectRoot);
     const ignore = config.ignore ?? [];
@@ -93,8 +203,7 @@ export async function runCheckCommand(
         if (!quiet) {
             console.log(
                 chalk.green(
-                    `\n✔ Fixed ${missingVars.length} missing variable${missingVars.length === 1 ? "" : "s"
-                    } in .env.example`,
+                    `\n✔ Fixed ${missingVars.length} missing variable${missingVars.length === 1 ? "" : "s"} in .env.example`,
                 ),
             );
 
@@ -134,6 +243,16 @@ export async function runCheckCommand(
 
     const totalIssues = missingCount + unusedCount;
     const hasProblems = missingCount > 0;
+
+    if (isGitHubActions) {
+        emitGitHubAnnotations({
+            missingInEnv: displayComparison.missingInEnv,
+            missingInEnvExample: displayComparison.missingInEnvExample,
+            unusedInEnv: displayComparison.unusedInEnv,
+            envPath: ".env",
+            envExamplePath: ".env.example",
+        });
+    }
 
     if (json) {
         printJsonReport({

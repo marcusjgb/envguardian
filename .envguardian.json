@@ -1,5 +1,5 @@
 {
     "ignore": [
-        "OLD_TOKEN"
+        "OLD_TOKEN","GITHUB_ACTIONS"
     ]
 }
