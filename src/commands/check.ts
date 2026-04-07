@@ -146,6 +146,82 @@ function emitGitHubAnnotations(options: {
     }
 }
 
+function writeGitHubSummary(summary: string): void {
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+
+    if (!summaryPath) {
+        return;
+    }
+
+    fs.appendFileSync(summaryPath, summary);
+}
+
+function buildGitHubSummary(options: {
+    missingInEnv: string[];
+    missingInEnvExample: string[];
+    unusedInEnv: string[];
+    unusedInEnvExample: string[];
+    hasProblems: boolean;
+}): string {
+    const {
+        missingInEnv,
+        missingInEnvExample,
+        unusedInEnv,
+        unusedInEnvExample,
+        hasProblems,
+    } = options;
+
+    let summary = "## 🛡 EnvGuardian Report\n\n";
+
+    if (
+        missingInEnv.length === 0 &&
+        missingInEnvExample.length === 0 &&
+        unusedInEnv.length === 0 &&
+        unusedInEnvExample.length === 0
+    ) {
+        summary += "✔ No issues found\n\n";
+        summary += hasProblems
+            ? "❌ EnvGuardian check failed\n"
+            : "✔ EnvGuardian check passed\n";
+
+        return summary;
+    }
+
+    if (missingInEnv.length > 0 || missingInEnvExample.length > 0) {
+        summary += "### ❌ Missing variables\n";
+
+        missingInEnv.forEach((variable) => {
+            summary += `- ${variable} (.env)\n`;
+        });
+
+        missingInEnvExample.forEach((variable) => {
+            summary += `- ${variable} (.env.example)\n`;
+        });
+
+        summary += "\n";
+    }
+
+    if (unusedInEnv.length > 0 || unusedInEnvExample.length > 0) {
+        summary += "### ⚠️ Unused variables\n";
+
+        unusedInEnv.forEach((variable) => {
+            summary += `- ${variable} (.env)\n`;
+        });
+
+        unusedInEnvExample.forEach((variable) => {
+            summary += `- ${variable} (.env.example)\n`;
+        });
+
+        summary += "\n";
+    }
+
+    summary += hasProblems
+        ? "❌ EnvGuardian check failed\n"
+        : "✔ EnvGuardian check passed\n";
+
+    return summary;
+}
+
 export async function runCheckCommand(
     options: RunCheckCommandOptions = {},
 ): Promise<number> {
@@ -252,6 +328,16 @@ export async function runCheckCommand(
             envPath: ".env",
             envExamplePath: ".env.example",
         });
+
+        writeGitHubSummary(
+            buildGitHubSummary({
+                missingInEnv: displayComparison.missingInEnv,
+                missingInEnvExample: displayComparison.missingInEnvExample,
+                unusedInEnv: displayComparison.unusedInEnv,
+                unusedInEnvExample: displayComparison.unusedInEnvExample,
+                hasProblems,
+            }),
+        );
     }
 
     if (json) {
